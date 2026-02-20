@@ -11,7 +11,7 @@ mongoose.connect(process.env.MONGO_URL)
   .catch(err => console.log("MongoDB error:", err));
 app.use(cors())
 
-app.use('/admin',authorization)
+app.use('/admin')
 app.use('/auth',require('./routes/register'))
 app.use('/user',require("./routes/user"))
 app.use("/admin",require("./routes/admin"))
@@ -26,5 +26,6 @@ app.listen(PORT,(err)=>{
     console.log(`Server is running on port ${PORT}`);
 
 })
+
 
 
