@@ -8,8 +8,8 @@ router.get('/course',async(req, res,next)=>{
     try{
         const course = await Course.find().sort({createdAt:-1})
         res.json(course)
-    }catch(err){
-        res.status(500).json({error:"Failed to Fetch Courses"})
+    }catch(error){
+        res.status(500).json({ message: error.message })
     }
 })
 
@@ -29,4 +29,5 @@ router.post('/enquiry', async(req,res)=>{
 
 
 module.exports= router;
+
 
