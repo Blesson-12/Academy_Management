@@ -4,14 +4,17 @@ const router = express.Router()
 const Course = require("../models/Course")
 const Enquiry = require("../models/Enquiry")
 
-router.get('/course',async(req, res,next)=>{
-    try{
-        const course = await Course.find().sort({createdAt:-1})
-        res.json(course)
-    }catch(error){
-        res.status(500).json({ message: error.message })
+router.get('/course', async (req, res) => {
+    try {
+        console.log("Fetching courses...");
+        const course = await Course.find().sort({ createdAt: -1 });
+        console.log("Courses:", course);
+        res.json(course);
+    } catch (error) {
+        console.log("REAL ERROR:", error);
+        res.status(500).json({ message: error.message });
     }
-})
+});
 
 router.post('/enquiry', async(req,res)=>{
     try{
@@ -29,5 +32,6 @@ router.post('/enquiry', async(req,res)=>{
 
 
 module.exports= router;
+
 
 
