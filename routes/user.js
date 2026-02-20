@@ -9,6 +9,7 @@ router.get('/course',async(req, res,next)=>{
         const course = await Course.find().sort({createdAt:-1})
         res.json(course)
     }catch(err){
+        console.log("REAL ERROR:", error)
         res.status(500).json({error:"Failed to Fetch Courses"})
     }
 })
@@ -21,6 +22,7 @@ router.post('/enquiry', async(req,res)=>{
         res.status(500).json({error:'failed to post course'})
     }
 })
+
 
 
 
