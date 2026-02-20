@@ -11,7 +11,7 @@ mongoose.connect(process.env.MONGO_URL)
   .catch(err => console.log("MongoDB error:", err));
 app.use(cors())
 
-app.use('/admin')
+app.use('/admin',authorization)
 app.use('/auth',require('./routes/register'))
 app.use('/user',require("./routes/user"))
 app.use("/admin",require("./routes/admin"))
