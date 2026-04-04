@@ -4,7 +4,7 @@ const cors = require('cors')
 const authorization = require('./routes/authorization')
 const app = express()
 require("dotenv").config();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 app.use(express.json())
 mongoose.connect(process.env.MONGO_URL)
   .then(() => console.log("Connected to MongoDB"))
