@@ -1,0 +1,13 @@
+POST http://localhost:5000/auth/register
+Content-Type: application/json
+
+{
+  "userName" : "academy",
+  "email":"academy@gmail.com",
+  "password":"academy@12345",
+  "role":"admin"
+}
+
+
+
+# Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5MzI4ZGVhZDM5NmFkNzllMTBhZDk0NiIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTc2NDkyMTgyNiwiZXhwIjoxNzY1MDA4MjI2fQ.zFGo7j47ctphSsgZn64Zx4ZicOtbAjtmu54XjpkcY0w
