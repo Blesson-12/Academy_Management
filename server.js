@@ -8,6 +8,8 @@ const PORT = process.env.PORT || 5000;
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "http://localhost:5000",
+  "https://react-rho-ecru-11.vercel.app",
   process.env.FRONTEND_URL,
   process.env.FRONTEND_URL_2
 ].filter(Boolean);

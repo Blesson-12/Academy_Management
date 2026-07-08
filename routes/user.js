@@ -4,7 +4,6 @@ const router = express.Router()
 
 const Course = require("../models/Course")
 const Enquiry = require("../models/Enquiry")
-const { sendEnquiryWhatsApp } = require("../services/whatsapp")
 const { sendEnquiryMail } = require("../services/mail")
 
 const mapCourse = (courseDoc) => {
@@ -25,40 +24,20 @@ router.get('/course',async(req, res,next)=>{
 router.post('/enquiry', async(req,res)=>{
     try{
         const enquiry = await Enquiry.create(req.body);
-        let whatsapp = {
-            sent:false,
-            skipped:true,
-            reason:"WhatsApp message was not attempted."
-        };
         let mail = {
             sent:false,
             skipped:true,
             reason:"Email notification was not attempted."
         };
 
-        try{
-            whatsapp = await sendEnquiryWhatsApp(enquiry);
-        }catch(err){
-            console.log("WhatsApp send error:", err.message);
-            whatsapp = {
-                sent:false,
-                skipped:false,
-                reason:err.message
-            };
-        }
-
         try {
             mail = await sendEnquiryMail(enquiry);
         } catch (err) {
             console.log("Email send error:", err.message);
-            mail = {
-                sent:false,
-                skipped:false,
-                reason: err.message
-            };
+            mail = { sent:false, skipped:false, reason: err.message };
         }
 
-         res.status(201).json({enquiry, whatsapp, mail})
+        res.status(201).json({ enquiry, mail })
     }catch(err){
         res.status(500).json({error:'failed to post course'})
     }

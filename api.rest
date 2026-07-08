@@ -1,4 +1,4 @@
-POST http://localhost:5000/auth/register
+GET  http://localhost:5000/user/course
 Content-Type: application/json
 
 {
