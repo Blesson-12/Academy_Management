@@ -50,24 +50,46 @@ const sendEnquiryMail = async (enquiry) => {
       user: process.env.MAIL_USER,
       pass: process.env.MAIL_PASS,
     },
+    // fail fast on connection issues
+    connectionTimeout: Number(process.env.MAIL_CONNECTION_TIMEOUT_MS || 10000),
+    greetingTimeout: Number(process.env.MAIL_GREETING_TIMEOUT_MS || 10000),
   });
 
   const { subject, text, html } = buildEnquiryEmail(enquiry);
 
-  const info = await transporter.sendMail({
-    from: process.env.MAIL_FROM,
-    to: process.env.ADMIN_EMAIL,
-    subject,
-    text,
-    html,
-  });
+  // Verify connection first to provide faster, clearer errors on failure
+  try {
+    await transporter.verify();
+  } catch (err) {
+    return {
+      sent: false,
+      skipped: false,
+      reason: `SMTP verify failed: ${err.message}`,
+    };
+  }
 
-  return {
-    sent: true,
-    skipped: false,
-    messageId: info.messageId,
-    envelope: info.envelope,
-  };
+  try {
+    const info = await transporter.sendMail({
+      from: process.env.MAIL_FROM,
+      to: process.env.ADMIN_EMAIL,
+      subject,
+      text,
+      html,
+    });
+
+    return {
+      sent: true,
+      skipped: false,
+      messageId: info.messageId,
+      envelope: info.envelope,
+    };
+  } catch (err) {
+    return {
+      sent: false,
+      skipped: false,
+      reason: `sendMail failed: ${err.message}`,
+    };
+  }
 };
 
 module.exports = {
