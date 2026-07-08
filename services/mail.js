@@ -20,6 +20,14 @@ const isMailConfigured = () => {
   );
 };
 
+const isSendGridConfigured = () => {
+  return Boolean(
+    process.env.SENDGRID_API_KEY &&
+    process.env.MAIL_FROM &&
+    process.env.ADMIN_EMAIL
+  );
+};
+
 const buildEnquiryEmail = ({ name, mobile, email, course }) => {
   return {
     subject: `New course enquiry: ${course || 'Unknown course'}`,
@@ -43,12 +51,17 @@ const buildEnquiryEmail = ({ name, mobile, email, course }) => {
 };
 
 const sendEnquiryMail = async (enquiry) => {
-  if (!isMailConfigured()) {
+  if (!isMailConfigured() && !isSendGridConfigured()) {
     return {
       sent: false,
       skipped: true,
       reason: 'Email service is not configured on the server.',
     };
+  }
+
+  const smtpConfigured = isMailConfigured();
+  if (!smtpConfigured && isSendGridConfigured()) {
+    return await sendViaSendGrid(enquiry);
   }
 
   const transporter = nodemailer.createTransport({
@@ -70,9 +83,9 @@ const sendEnquiryMail = async (enquiry) => {
   try {
     await transporter.verify();
   } catch (err) {
-    // If SendGrid API key is configured, fall back to SendGrid instead of failing
+    // If SendGrid API key is configured, use it directly if SMTP verification fails.
     const verifyErr = err;
-    if (sgMail) {
+    if (isSendGridConfigured()) {
       try {
         const sgResult = await sendViaSendGrid(enquiry);
         return sgResult;
@@ -109,7 +122,7 @@ const sendEnquiryMail = async (enquiry) => {
     };
   } catch (err) {
     // try SendGrid if available
-    if (sgMail) {
+    if (isSendGridConfigured()) {
       try {
         const sgResult = await sendViaSendGrid(enquiry);
         return sgResult;
@@ -137,7 +150,7 @@ const sendViaSendGrid = async (enquiry) => {
   const { subject, text, html } = buildEnquiryEmail(enquiry);
   const msg = {
     to: process.env.ADMIN_EMAIL,
-    from: process.env.MAIL_FROM,
+    from: process.env.MAIL_FROM, // must be a verified sender in SendGrid
     subject,
     text,
     html,
