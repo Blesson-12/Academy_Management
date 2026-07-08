@@ -20,17 +20,18 @@ router.route('/login').post(async(req,res)=>{
     try{
         const userExists =await registerModel.findOne({email:req.body.email});
         if(!userExists){
-            res.status(400).send("enter valid credentials")
+            return res.status(400).json({ message: "enter valid credentials" });
         }
         const pass =await bcrypt.compare(req.body.password,userExists.password)
         if(!pass){
-             res.status(400).send("enter valid credentials")
+             return res.status(400).json({ message: "enter valid credentials" });
         }
         const token = jsonwebtoken.sign({id:userExists._id,role:userExists.role},process.env.SECRET_KEY,{expiresIn:"1d"})
         res.status(200).json({token});
     }
     catch(err){
        console.log(err.message)
+       return res.status(500).json({ message: "Login failed" });
     }
 })
 
