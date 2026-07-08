@@ -1,4 +1,13 @@
 const nodemailer = require('nodemailer');
+let sgMail;
+if (process.env.SENDGRID_API_KEY) {
+  try {
+    sgMail = require('@sendgrid/mail');
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  } catch (err) {
+    sgMail = null;
+  }
+}
 
 const isMailConfigured = () => {
   return Boolean(
@@ -61,6 +70,21 @@ const sendEnquiryMail = async (enquiry) => {
   try {
     await transporter.verify();
   } catch (err) {
+    // If SendGrid API key is configured, fall back to SendGrid instead of failing
+    const verifyErr = err;
+    if (sgMail) {
+      try {
+        const sgResult = await sendViaSendGrid(enquiry);
+        return sgResult;
+      } catch (sgErr) {
+        return {
+          sent: false,
+          skipped: false,
+          reason: `SMTP verify failed: ${verifyErr.message}; SendGrid fallback failed: ${sgErr.message}`,
+        };
+      }
+    }
+
     return {
       sent: false,
       skipped: false,
@@ -84,12 +108,50 @@ const sendEnquiryMail = async (enquiry) => {
       envelope: info.envelope,
     };
   } catch (err) {
+    // try SendGrid if available
+    if (sgMail) {
+      try {
+        const sgResult = await sendViaSendGrid(enquiry);
+        return sgResult;
+      } catch (sgErr) {
+        return {
+          sent: false,
+          skipped: false,
+          reason: `sendMail failed: ${err.message}; SendGrid fallback failed: ${sgErr.message}`,
+        };
+      }
+    }
+
     return {
       sent: false,
       skipped: false,
       reason: `sendMail failed: ${err.message}`,
     };
   }
+};
+
+const sendViaSendGrid = async (enquiry) => {
+  if (!sgMail) {
+    throw new Error('SendGrid not configured');
+  }
+  const { subject, text, html } = buildEnquiryEmail(enquiry);
+  const msg = {
+    to: process.env.ADMIN_EMAIL,
+    from: process.env.MAIL_FROM,
+    subject,
+    text,
+    html,
+  };
+
+  const resp = await sgMail.send(msg);
+  // sgMail.send returns an array of responses
+  const info = Array.isArray(resp) ? resp[0] : resp;
+  return {
+    sent: true,
+    skipped: false,
+    provider: 'sendgrid',
+    statusCode: info && info.statusCode,
+  };
 };
 
 module.exports = {
